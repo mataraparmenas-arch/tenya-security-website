@@ -1,0 +1,143 @@
+import { FC, useEffect, useRef, useState } from "react";
+import { Link  } from "react-router-dom";
+
+// import ProfilePlaceholder from "@/assets/profile-placeholder.png";
+import Logo from "@/assets/open-sacco.png";
+// components
+import LucideIcon from "./LucideIcon";
+// context and custom hook
+import { Theme } from "@/contexts/ThemeContext";
+
+import { useUserProfileInfo } from "@/hooks/useUserProfile";
+// constants
+// import { useLogout } from "@/hooks/api/auth";
+
+interface NavBarProps {
+  showMobileMenu: boolean;
+  handleMobileMenuToggle: () => void;
+}
+
+const NavBar: FC<NavBarProps> = ({
+  showMobileMenu,
+  handleMobileMenuToggle,
+}) => {
+  const [showDropdown, setShowDropdown] = useState(false);
+  // dark mode context consumer
+  const { toggleDarkTheme, darkTheme } = Theme();
+
+  // custom hook for user profile
+  const { profile } = useUserProfileInfo();
+
+  const handleShowDropdown = () => {
+    setShowDropdown(!showDropdown);
+  };
+
+  // close dropdown when user clicks outside the dropdown
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current?.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    }
+    // Bind the event listener
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      // Unbind the event listener on clean up
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // const navigate = useNavigate();
+
+  // const { mutate: logout, isPending: isPendingLogout } = useLogout();
+
+  // handle logout
+  // const handleLogout = async () => {
+  //   try {
+  //     await axios.get(`${apiBaseUrl}/api/logout/`);
+  //     localStorage.removeItem("access_token");
+  //     localStorage.removeItem("refresh_token");
+  //     // TODO: Confirm dialog before logout and redirect to login page - modal with different sizes
+  //     navigate("/login");
+  //   } catch {
+  //     console.log("error");
+  //   }
+  // };
+
+  const handleLogout = () => {
+    // logout();
+    console.log("Logged out")
+  };
+  return (
+    <div className="fixed left-0 top-0 z-40 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-blue-700 px-3 text-white shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100">
+      <div className="flex items-center">
+        <img src={Logo} alt="Open SACCO logo" className="w-20 h-20" />
+        <div
+          className="lg:hidden cursor-pointer"
+          onClick={handleMobileMenuToggle}
+        >
+          {showMobileMenu ? (
+            <LucideIcon name="X" size={27} />
+          ) : (
+            <LucideIcon name="AlignJustify" size={27} />
+          )}
+        </div>
+      </div>
+
+      <div className="flex gap-x-5 items-center">
+        <div className="cursor-pointer" onClick={toggleDarkTheme}>
+          {darkTheme ? (
+            <LucideIcon name="Sun" size={24} />
+          ) : (
+            <LucideIcon name="Moon" size={24} />
+          )}
+        </div>
+        <div>
+          {/* <img
+            className="rounded-full  border border-white w-10 h-10"
+            src={ profile?.profile.profile_image ? `${apiBaseUrl}${profile?.profile.profile_image}` : ProfilePlaceholder}
+            // src={ProfileImage}
+            alt=" mr Isaac"
+            onClick={handleShowDropdown}
+          /> */}
+          {/* dropdown menu start here */}
+          <div
+            ref={dropdownRef}
+            className={` ${
+              showDropdown ? "block" : "hidden"
+            } absolute right-0 z-20 mt-3 me-3 min-w-52 rounded-xl border border-slate-200 bg-white text-slate-900 shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100`}
+          >
+            <div className="p-4">
+              <p className="">
+                {profile?.username}
+                <small className="rounded-md bg-blue-700 p-0.5 text-xs text-white dark:bg-slate-800">
+                  {/* {profile?.profile.role_display} */}
+                </small>
+              </p>
+              <p className="pb-2">{profile?.email}</p>
+              <Link
+                to="/profile"
+                className="flex rounded-md p-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+                onClick={handleShowDropdown}
+              >
+                Profile
+              </Link>
+              <div
+                className="my-2 flex cursor-pointer items-center gap-x-1 rounded-md p-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800"
+                onClick={handleLogout}
+              >
+                <LucideIcon name="LogOut" size={16} /> Logout
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default NavBar;
